@@ -65,7 +65,9 @@
     <a href="Keranjang.php" style="text-decoration: none; color: inherit;">
         <span class="material-symbols-outlined">shopping_basket</span>
     </a>
-    <span class="material-symbols-outlined">person</span>
+    <a href="#" onclick="logout()" title="Logout" style="text-decoration: none; color: #ef4444;">
+        <span class="material-symbols-outlined">logout</span>
+    </a>
 </div>       
 </header>
 
@@ -91,6 +93,17 @@
 </div>
 
 <script>
+    if(localStorage.getItem("isLoggedIn") !== "true") {
+        window.location.href = "../login.html";
+    }
+
+    function logout() {
+        if(confirm("Apakah kamu yakin ingin keluar?")) {
+            localStorage.clear();
+            window.location.href = "../login.html";
+        }
+    }
+
     const MENU_API = 'produk.php';
     const CART_API = 'cart.php';
 
