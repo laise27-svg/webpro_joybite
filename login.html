@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - JoyBite</title>
+    <style>
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        
+        body { 
+            background-color: #FFFFDC; 
+            color: #334155; 
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 2rem; 
+        }
+
+        .login-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            max-width: 1000px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .login-left h1 {
+            font-size: 3.5rem;
+            line-height: 1.2;
+            color: #1e293b;
+            font-weight: bold;
+        }
+
+        .login-right {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .login-card {
+            background-color: #ffffff;
+            padding: 3rem 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-card h2 {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            font-size: 1.8rem;
+            color: #1e293b;
+        }
+
+        .form-group { 
+            margin-bottom: 1.5rem; 
+        }
+
+        input { 
+            width: 100%; 
+            padding: 1rem; 
+            background-color: #f1f5f9; 
+            border: 2px solid transparent; 
+            border-radius: 8px; 
+            outline: none; 
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus { 
+            border-color: #F28B2A; 
+            background-color: #ffffff;
+        }
+
+        button { 
+            width: 100%; 
+            background-color: #F28B2A; 
+            color: #000000; 
+            font-weight: bold; 
+            font-size: 1.1rem;
+            padding: 1rem; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            margin-top: 1.5rem; 
+            transition: background-color 0.2s; 
+        }
+
+        button:hover { 
+            background-color: #d97722; 
+        }
+
+        .error-msg { 
+            color: #ef4444; 
+            text-align: center; 
+            margin-top: 1rem; 
+            font-size: 0.9rem; 
+            display: none; 
+        }
+
+        @media (max-width: 768px) {
+            .login-wrapper {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 2rem;
+            }
+            .login-left h1 {
+                font-size: 2.5rem;
+            }
+            .login-right {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <div class="login-left">
+            <h1>Selamat Datang<br>di Joybite!</h1>
+        </div>
+
+        <div class="login-right">
+            <div class="login-card">
+                <h2>Login</h2>
+                <form id="formLogin">
+                    <div class="form-group">
+                        <input type="text" id="username" placeholder="Username" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit">Masuk</button>
+                    <p class="error-msg" id="pesanError"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseURL = 'http://localhost/api_joybite';
+
+        if(localStorage.getItem("isLoggedIn") === "true") {
+            const role = localStorage.getItem("role");
+            if(role === 'admin') {
+                window.location.href = "admin/validasi.html";
+            } else if(role === 'penjual') {
+                window.location.href = "penjual/index.html";
+            } else if(role === 'pembeli') {
+                window.location.href = "pembeli/menu.php";
+            } else {
+                localStorage.clear();
+            }
+        }
+
+        document.getElementById('formLogin').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const dataLogin = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            };
+
+            fetch(`${baseURL}/login.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataLogin)
+            })
+            .then(response => response.json())
+            .then(hasil => {
+                if(hasil.status === "success") {
+                    // Simpan data login ke localStorage
+                    localStorage.setItem("isLoggedIn", "true");
+                    localStorage.setItem("role", hasil.data.role);
+                    localStorage.setItem("id_user", hasil.data.id_user);
+                    localStorage.setItem("username", hasil.data.username);
+                    
+                    alert("Login berhasil sebagai " + hasil.data.role + "!");
+                    
+                    // Redirect berdasarkan role (pastikan folder-folder ini sudah kamu buat)
+                    if(hasil.data.role === 'admin') {
+                        window.location.href = "admin/validasi.html"; 
+                    } else if(hasil.data.role === 'penjual') {
+                        window.location.href = "penjual/index.html";
+                    } else if(hasil.data.role === 'pembeli') {
+                        window.location.href = "pembeli/menu.php";
+                    } else {
+                        window.location.href = "index.html";
+                    }
+                } else {
+                    const pesanError = document.getElementById('pesanError');
+                    pesanError.innerText = hasil.message;
+                    pesanError.style.display = "block";
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
